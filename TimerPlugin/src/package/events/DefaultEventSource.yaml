@@ -1,4 +1,14 @@
+displayName: Timer
+description: Contains various events generated for the application
+iconFile: DefaultEventSource.svg
+
 events:
-  - name: buttonPress
-    displayName: Button Press
-    description: Triggered when the button is pressed
+    - name: knock
+      displayName: knock
+      description: This haptic knock event
+    - name: ringing
+      displayName: ringing
+      description: This haptic ringing event
+    - name: jingle
+      displayName: jingle
+      description: This haptic jingle event

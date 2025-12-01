@@ -1,6 +1,7 @@
 haptics:
-    periodic15min:
-        DEFAULT: happy_alert
-    buttonPress:
-        DEFAULT: sharp_state_change
-        MX Master 4: happy_alert   # Device-specific mapping
+    knock:
+      DEFAULT: knock
+    ringing:
+      DEFAULT: ringing
+    jingle:
+      DEFAULT: jingle
