@@ -5,3 +5,6 @@ haptics:
       DEFAULT: ringing
     jingle:
       DEFAULT: jingle
+    buttonPress:
+      DEFAULT: sharp_state_change
+      MX Master 4: sharp_collision    # Device-specific mapping

@@ -4,11 +4,11 @@ iconFile: DefaultEventSource.svg
 
 events:
     - name: knock
-      displayName: knock
-      description: This haptic knock event
-    - name: ringing
-      displayName: ringing
-      description: This haptic ringing event
-    - name: jingle
-      displayName: jingle
-      description: This haptic jingle event
+      displayName: Knock
+      description: The haptic knock event
+    - name: Ringing
+      displayName: Ringing
+      description: The haptic ringing event
+    - name: Jingle
+      displayName: Jingle
+      description: The haptic jingle event
