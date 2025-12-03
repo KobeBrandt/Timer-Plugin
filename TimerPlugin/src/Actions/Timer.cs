@@ -13,6 +13,7 @@
         private System.Timers.Timer _delayTimer;
 
         private Int32 _selectedTime = 0;
+        private String _selectedHaptic = "";
         public Timer()
         {
             // Set basic properties
@@ -26,6 +27,8 @@
     new ActionEditorSlider(name: "Time", labelText: "Time (sec):", description: "Adjust time")
       .SetValues(minimumValue: 1, maximumValue: 60, defaultValue: 15, step: 1));
 
+            this.ActionEditor.AddControlEx(
+    new ActionEditorListbox(name: "hapticAlarm", labelText: "Select a haptic:"));
             // Subscribe to events
             this.ActionEditor.ControlValueChanged += this.OnControlValueChanged;
         }
@@ -45,6 +48,12 @@
                 this._delayTimer.Elapsed += OnDelayElapsed;
                 this._delayTimer.AutoReset = false; // One-shot timer
                 PluginLog.Info("Time set for: " + timeInSeconds * 1000);
+            }
+            if (e.ControlName.EqualsNoCase("hapticAlarm"))
+            {
+                this._selectedHaptic = (Int32)e.ActionEditorState.GetControlValue("hapticAlarm").ParseInt32();
+
+
             }
         }
 
