@@ -1,19 +1,14 @@
 ﻿namespace Loupedeck.TimerPlugin.Actions
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
     using System.Timers;
 
     public class Timer : ActionEditorCommand
     {
-        private const String EventName = "buttonPress";
         private System.Timers.Timer _delayTimer;
 
-        private Int32 _selectedTime = 0;
         private String _selectedHaptic = "";
+        private TimeInMilliSeconds time = new();
         public Timer()
         {
             // Set basic properties
@@ -22,44 +17,94 @@
             this.GroupName = "Timers";
             this.Description = "A timer that uses the haprics when finished";
 
+
+
             // Add controls for user configuration
-            this.ActionEditor.AddControlEx(
-    new ActionEditorSlider(name: "Time", labelText: "Time (sec):", description: "Adjust time")
-      .SetValues(minimumValue: 1, maximumValue: 60, defaultValue: 15, step: 1));
+            PluginLog.Info("Adding controls");
 
             this.ActionEditor.AddControlEx(
-    new ActionEditorListbox(name: "hapticAlarm", labelText: "Select a haptic:"));
+new ActionEditorListbox(name: "hapticAlarm", labelText: "Select a haptic:"));
+
+
+
+            this.ActionEditor.AddControlEx(
+    new ActionEditorSlider(name: "TimeSec", labelText: "Time (sec):", description: "Adjust seconds")
+        .SetValues(minimumValue: 0, maximumValue: 59, defaultValue: 0, step: 1));
+
+            this.ActionEditor.AddControlEx(
+new ActionEditorSlider(name: "TimeMin", labelText: "Time (min):", description: "Adjust minutes")
+.SetValues(minimumValue: 0, maximumValue: 59, defaultValue: 0, step: 1));
+
+            this.ActionEditor.AddControlEx(
+    new ActionEditorSlider(name: "TimeHour", labelText: "Time (hour):", description: "Adjust hours")
+        .SetValues(minimumValue: 0, maximumValue: 12, defaultValue: 0, step: 1));
+
+
+
+            PluginLog.Info("Added controls");
+
             // Subscribe to events
+            this.ActionEditor.ListboxItemsRequested += this.OnListboxItemsRequested;
+
             this.ActionEditor.ControlValueChanged += this.OnControlValueChanged;
+        }
+
+        private void OnListboxItemsRequested(Object sender, ActionEditorListboxItemsRequestedEventArgs e)
+        {
+            if (e.ControlName.EqualsNoCase("hapticAlarm"))
+            {
+                // Add items to the listbox
+                e.AddItem(name: "jingle", displayName: "Jingle", description: "jingle haptic");
+                e.AddItem(name: "knock", displayName: "Knock", description: "knock haptic");
+                e.AddItem(name: "ringing", displayName: "Ringing", description: "ringing haptic");
+                
+
+                e.SetSelectedItemName("jingle");
+            }
         }
 
         private void OnControlValueChanged(Object sender, ActionEditorControlValueChangedEventArgs e)
         {
-            if (e.ControlName.EqualsNoCase("Time"))
-            {
-                this._selectedTime = (Int32)e.ActionEditorState.GetControlValue("Time").ParseInt32();
-
-                // Update display name based on user input
-                e.ActionEditorState.SetDisplayName($"Timer:\n {this._selectedTime}");
-
-                PluginLog.Info("Starting setting up timer");
-                Int32 timeInSeconds = this._selectedTime * 1;
-                this._delayTimer = new System.Timers.Timer(timeInSeconds * 1000); // time in milliseconds
-                this._delayTimer.Elapsed += OnDelayElapsed;
-                this._delayTimer.AutoReset = false; // One-shot timer
-                PluginLog.Info("Time set for: " + timeInSeconds * 1000);
-            }
             if (e.ControlName.EqualsNoCase("hapticAlarm"))
             {
-                this._selectedHaptic = (Int32)e.ActionEditorState.GetControlValue("hapticAlarm").ParseInt32();
-
-
+                this._selectedHaptic = e.ActionEditorState.GetControlValue("hapticAlarm").Trim();
+                PluginLog.Info("Starting haptics: " + this._selectedHaptic);
+                this.Plugin.PluginEvents.RaiseEvent(this._selectedHaptic);
             }
+            if (e.ControlName.EqualsNoCase("TimeSec"))
+            {
+                this.time.Seconds = (Int32)e.ActionEditorState.GetControlValue("TimeSec").ParseInt32();
+            }
+            if (e.ControlName.EqualsNoCase("TimeMin"))
+            {
+                this.time.Minutes = (Int32)e.ActionEditorState.GetControlValue("TimeMin").ParseInt32();
+            }
+            if (e.ControlName.EqualsNoCase("TimeHour"))
+            {
+                this.time.Hours = (Int32)e.ActionEditorState.GetControlValue("TimeHour").ParseInt32();
+            }
+            try
+            {
+                PluginLog.Info("Starting setting timer for " + this.time.ReturnMilliSeconds());
+                this._delayTimer = new System.Timers.Timer(this.time.ReturnMilliSeconds());
+                this._delayTimer.Elapsed += this.OnDelayElapsed;
+                this._delayTimer.AutoReset = false;
+                PluginLog.Info("Time set for: " + this.time.ReturnMilliSeconds());
+            }
+            catch (Exception ex) {
+                PluginLog.Error(ex.Message);
+            }
+
+            // Update display name based on user input
+            PluginLog.Info($"Timer\n {this._selectedHaptic} \n {this.time.Hours}:{this.time.Minutes}:{this.time.Seconds}");
+            e.ActionEditorState.SetDisplayName($"Timer\n {this._selectedHaptic} \n {this.time.Hours}:{this.time.Minutes}:{this.time.Seconds}");
         }
 
         protected override Boolean OnLoad()
         {
-            this.Plugin.PluginEvents.AddEvent(EventName, "Button Press", "This haptic event is sent when the user presses the button");
+            this.Plugin.PluginEvents.AddEvent("knock", "Knock", "The haptic knock event");
+            this.Plugin.PluginEvents.AddEvent("ringing", "Ringing", "The haptic ringing event");
+            this.Plugin.PluginEvents.AddEvent("jingle", "Jingle", "The haptic jingle event");
             return true;
         }
 
@@ -70,14 +115,15 @@
 
             this._delayTimer.Stop(); // Stop any existing timer
             this._delayTimer.Start();
+            
             return true;
 
         }
         private void OnDelayElapsed(object sender, ElapsedEventArgs e)
         {
-            PluginLog.Info("Starting haptics");
+            PluginLog.Info("Starting haptics: " + this._selectedHaptic);
             // Trigger event on UI thread if needed, but RaiseEvent should be thread-safe
-            this.Plugin.PluginEvents.RaiseEvent(EventName);
+            this.Plugin.PluginEvents.RaiseEvent(this._selectedHaptic);
         }
     }
 }
