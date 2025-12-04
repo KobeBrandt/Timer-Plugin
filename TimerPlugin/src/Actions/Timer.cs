@@ -95,8 +95,6 @@ new ActionEditorSlider(name: "TimeMin", labelText: "Time (min):", description: "
                 PluginLog.Error(ex.Message);
             }
 
-
-
             // Update display name based on user input
             PluginLog.Info($"Timer\n {this._selectedHaptic} \n {this.time.Hours}:{this.time.Minutes}:{this.time.Seconds}");
             e.ActionEditorState.SetDisplayName($"Timer\n {this._selectedHaptic} \n {this.time.Hours}:{this.time.Minutes}:{this.time.Seconds}");
@@ -117,6 +115,7 @@ new ActionEditorSlider(name: "TimeMin", labelText: "Time (min):", description: "
 
             this._delayTimer.Stop(); // Stop any existing timer
             this._delayTimer.Start();
+            
             return true;
 
         }
