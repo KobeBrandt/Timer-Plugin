@@ -7,6 +7,14 @@ namespace Loupedeck.TimerPlugin.Services
     using System.Text.Json;
     using Loupedeck.TimerPlugin.Models;
 
+    /// <summary>
+    /// Manages timer configuration persistence using the SDK-recommended plugin data directory.
+    /// This follows Loupedeck SDK best practices by:
+    /// - Using GetPluginDataDirectory() for storage location
+    /// - Implementing FileSystemWatcher for external edit support
+    /// - Providing thread-safe singleton access
+    /// - Supporting hot-reload of configuration changes
+    /// </summary>
     public class TimerConfigurationService
     {
         private static TimerConfigurationService _instance;
@@ -34,11 +42,15 @@ namespace Loupedeck.TimerPlugin.Services
                     if (_instance == null)
                     {
                         _instance = new TimerConfigurationService(pluginDataDirectory);
+                        // Trigger initial configuration load event
+                        _instance.ConfigurationChanged?.Invoke(_instance, EventArgs.Empty);
                     }
                 }
             }
             return _instance;
         }
+
+        public static bool IsInitialized => _instance != null;
 
         public static TimerConfigurationService Instance
         {

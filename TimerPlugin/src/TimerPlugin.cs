@@ -21,15 +21,15 @@ namespace Loupedeck.TimerPlugin
 
             // Initialize the plugin resources.
             PluginResources.Init(this.Assembly);
+
+            // Initialize configuration service early so actions can access it
+            var pluginDataDir = this.GetPluginDataDirectory();
+            TimerConfigurationService.Initialize(pluginDataDir);
         }
 
         // This method is called when the plugin is loaded.
         public override void Load()
         {
-            // Initialize configuration service
-            var pluginDataDir = this.GetPluginDataDirectory();
-            TimerConfigurationService.Initialize(pluginDataDir);
-
             // Start web configuration server
             WebConfigurationService.Instance.Start();
 
