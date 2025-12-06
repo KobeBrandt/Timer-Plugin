@@ -1,6 +1,8 @@
 namespace Loupedeck.TimerPlugin.Actions
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Timers;
     using Loupedeck;
     using Loupedeck.TimerPlugin.Services;
@@ -14,9 +16,9 @@ namespace Loupedeck.TimerPlugin.Actions
         private TimerPreset _currentTimer;
         private bool _isRunning;
 
-        // Track timer IDs and display names (like litra plugin tracks devices)
-        private readonly Dictionary<string, string> _deviceSerials = new Dictionary<string, string>();
-        private readonly Dictionary<string, string> _deviceDisplayNames = new Dictionary<string, string>();
+        // Track timer IDs and display names
+        private readonly Dictionary<string, string> _timerIds = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> _timerDisplayNames = new Dictionary<string, string>();
 
         public ConfiguredTimer()
             : base()
@@ -85,12 +87,12 @@ namespace Loupedeck.TimerPlugin.Actions
                         var duration = $"{timer.Hours:D2}:{timer.Minutes:D2}:{timer.Seconds:D2}";
                         var displayName = $"{timer.Name} ({duration})";
                         
-                        if (!_deviceSerials.ContainsKey(timer.Id))
+                        if (!this._timerIds.ContainsKey(timer.Id))
                         {
                             // Add each timer as a parameter
                             this.AddParameter(timer.Id, displayName, this.GroupName);
-                            _deviceSerials[timer.Id] = timer.Id;
-                            _deviceDisplayNames[timer.Id] = displayName;
+                            this._timerIds[timer.Id] = timer.Id;
+                            this._timerDisplayNames[timer.Id] = displayName;
                             PluginLog.Info($"Added timer parameter: {timer.Id} - {displayName}");
                         }
                         else
@@ -98,19 +100,19 @@ namespace Loupedeck.TimerPlugin.Actions
                             // Update parameter if name changed  
                             this.RemoveParameter(timer.Id);
                             this.AddParameter(timer.Id, displayName, this.GroupName);
-                            _deviceDisplayNames[timer.Id] = displayName;
+                            this._timerDisplayNames[timer.Id] = displayName;
                             PluginLog.Info($"Updated timer parameter: {timer.Id} - {displayName}");
                         }
                     }
                 }
 
                 // Remove parameters for timers that are no longer active or were deleted
-                var removedTimers = _deviceSerials.Keys.Except(currentTimerIds).ToList();
+                var removedTimers = this._timerIds.Keys.Except(currentTimerIds).ToList();
                 foreach (var timerId in removedTimers)
                 {
                     this.RemoveParameter(timerId);
-                    _deviceSerials.Remove(timerId);
-                    _deviceDisplayNames.Remove(timerId);
+                    this._timerIds.Remove(timerId);
+                    this._timerDisplayNames.Remove(timerId);
                     PluginLog.Info($"Removed timer parameter: {timerId}");
                 }
 
