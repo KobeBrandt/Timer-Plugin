@@ -17,6 +17,7 @@ namespace Loupedeck.TimerPlugin.Services
         private Task _serverTask;
         private readonly int _port;
         private bool _disposed;
+        private TimerPlugin _plugin;
 
         private WebConfigurationService()
         {
@@ -33,6 +34,11 @@ namespace Loupedeck.TimerPlugin.Services
                 }
                 return _instance;
             }
+        }
+
+        public void SetPlugin(TimerPlugin plugin)
+        {
+            _plugin = plugin;
         }
 
         public void Start()
@@ -127,6 +133,10 @@ namespace Loupedeck.TimerPlugin.Services
                 {
                     HandleSaveConfig(request, response);
                 }
+                else if (path == "/api/haptic-preview" && request.HttpMethod == "POST")
+                {
+                    HandleHapticPreview(request, response);
+                }
                 else if (path.StartsWith("/"))
                 {
                     HandleStaticFile(path, response);
@@ -203,6 +213,52 @@ namespace Loupedeck.TimerPlugin.Services
             catch (Exception ex)
             {
                 PluginLog.Error(ex, "Error in HandleSaveConfig");
+                response.StatusCode = 500;
+            }
+            finally
+            {
+                response.Close();
+            }
+        }
+
+        private void HandleHapticPreview(HttpListenerRequest request, HttpListenerResponse response)
+        {
+            try
+            {
+                if (_plugin == null)
+                {
+                    PluginLog.Warning("Cannot preview haptic: plugin reference not set");
+                    response.StatusCode = 503;
+                    response.Close();
+                    return;
+                }
+
+                using (var reader = new StreamReader(request.InputStream, request.ContentEncoding))
+                {
+                    var json = reader.ReadToEnd();
+                    var data = JsonSerializer.Deserialize<JsonElement>(json);
+                    
+                    if (data.TryGetProperty("hapticName", out var hapticNameElement))
+                    {
+                        var hapticName = hapticNameElement.GetString();
+                        
+                        if (!string.IsNullOrEmpty(hapticName) && hapticName != "none")
+                        {
+                            PluginLog.Info($"Triggering haptic preview: {hapticName}");
+                            _plugin.PluginEvents.RaiseEvent(hapticName);
+                        }
+                        
+                        response.StatusCode = 200;
+                    }
+                    else
+                    {
+                        response.StatusCode = 400;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                PluginLog.Error(ex, "Error in HandleHapticPreview");
                 response.StatusCode = 500;
             }
             finally

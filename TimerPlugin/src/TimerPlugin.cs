@@ -30,6 +30,9 @@ namespace Loupedeck.TimerPlugin
         // This method is called when the plugin is loaded.
         public override void Load()
         {
+            // Set plugin reference for haptic feedback
+            WebConfigurationService.Instance.SetPlugin(this);
+            
             // Start web configuration server
             WebConfigurationService.Instance.Start();
 

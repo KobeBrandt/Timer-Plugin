@@ -446,10 +446,40 @@ function setupSliderSync() {
     });
 }
 
+// Preview haptic feedback
+async function previewHaptic(hapticName) {
+    if (!hapticName || hapticName === 'none') {
+        return;
+    }
+
+    try {
+        await fetch('/api/haptic-preview', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ hapticName: hapticName })
+        });
+    } catch (error) {
+        console.error('Error previewing haptic:', error);
+    }
+}
+
+// Setup haptic preview on selection change
+function setupHapticPreview() {
+    const hapticSelect = document.getElementById('modal-haptic');
+    if (hapticSelect) {
+        hapticSelect.addEventListener('change', (e) => {
+            previewHaptic(e.target.value);
+        });
+    }
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, initializing...');
     initializeTheme();
     setupSliderSync();
+    setupHapticPreview();
     loadConfiguration();
 });
