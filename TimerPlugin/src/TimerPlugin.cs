@@ -1,6 +1,7 @@
 namespace Loupedeck.TimerPlugin
 {
     using System;
+    using Loupedeck.TimerPlugin.Services;
 
     // This class contains the plugin-level logic of the Loupedeck plugin.
 
@@ -25,11 +26,27 @@ namespace Loupedeck.TimerPlugin
         // This method is called when the plugin is loaded.
         public override void Load()
         {
+            // Initialize configuration service
+            var pluginDataDir = this.GetPluginDataDirectory();
+            TimerConfigurationService.Initialize(pluginDataDir);
+
+            // Start web configuration server
+            WebConfigurationService.Instance.Start();
+
+            // Add haptic events
+            this.PluginEvents.AddEvent("knock", "Knock", "The haptic knock event");
+            this.PluginEvents.AddEvent("ringing", "Ringing", "The haptic ringing event");
+            this.PluginEvents.AddEvent("jingle", "Jingle", "The haptic jingle event");
+
+            PluginLog.Info("Timer Plugin loaded successfully");
         }
 
         // This method is called when the plugin is unloaded.
         public override void Unload()
         {
+            WebConfigurationService.Instance?.Dispose();
+            TimerConfigurationService.Instance?.Dispose();
+            PluginLog.Info("Timer Plugin unloaded");
         }
     }
 }
