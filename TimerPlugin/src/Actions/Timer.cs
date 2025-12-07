@@ -1,6 +1,8 @@
 ﻿namespace Loupedeck.TimerPlugin.Actions
 {
     using System;
+    using System.Drawing;
+    using System.Net.Mime;
     using System.Timers;
 
     public class Timer : ActionEditorCommand
@@ -116,8 +118,9 @@ new ActionEditorSlider(name: "TimeMin", labelText: "Time (min):", description: "
             this._delayTimer.Stop(); // Stop any existing timer
             this._delayTimer.Start();
             
+            
+            
             return true;
-
         }
         private void OnDelayElapsed(object sender, ElapsedEventArgs e)
         {
