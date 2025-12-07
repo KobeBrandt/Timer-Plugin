@@ -98,8 +98,8 @@ new ActionEditorSlider(name: "TimeMin", labelText: "Time (min):", description: "
             }
 
             // Update display name based on user input
-            PluginLog.Info($"Timer\n {this._selectedHaptic} \n {this.time.Hours}:{this.time.Minutes}:{this.time.Seconds}");
-            e.ActionEditorState.SetDisplayName($"Timer\n {this._selectedHaptic} \n {this.time.Hours}:{this.time.Minutes}:{this.time.Seconds}");
+            // PluginLog.Info($"Timer\n {this._selectedHaptic} \n {this.time.Hours}:{this.time.Minutes}:{this.time.Seconds}");
+            // e.ActionEditorState.SetDisplayName($"Timer\n {this._selectedHaptic} \n {this.time.Hours}:{this.time.Minutes}:{this.time.Seconds}");
         }
 
         protected override Boolean OnLoad()
@@ -118,7 +118,7 @@ new ActionEditorSlider(name: "TimeMin", labelText: "Time (min):", description: "
             this._delayTimer.Stop(); // Stop any existing timer
             this._delayTimer.Start();
             
-            
+            this.ActionImageChanged();
             
             return true;
         }
@@ -127,6 +127,19 @@ new ActionEditorSlider(name: "TimeMin", labelText: "Time (min):", description: "
             PluginLog.Info("Starting haptics: " + this._selectedHaptic);
             // Trigger event on UI thread if needed, but RaiseEvent should be thread-safe
             this.Plugin.PluginEvents.RaiseEvent(this._selectedHaptic);
+        }
+
+        protected override BitmapImage GetCommandImage(ActionEditorActionParameters actionParameters, Int32 imageWidth,
+            Int32 imageHeight)
+        {
+            PluginLog.Info($"{this.time.Hours}:{this.time.Minutes}:{this.time.Seconds}");
+            using (var bitmapBuilder = new BitmapBuilder(imageWidth, imageHeight))
+            {
+                
+                bitmapBuilder.DrawText($"{this.time.Hours}:{this.time.Minutes}:{this.time.Seconds}");
+
+                return bitmapBuilder.ToImage();
+            }
         }
     }
 }
